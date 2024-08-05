@@ -102,6 +102,7 @@ if __name__ == '__main__':
                         help='path for saving vocabulary wrapper')
     parser.add_argument('--threshold', type=int, default=4, 
                         help='minimum word count threshold')
-    parser.add_argument('--type', type=str, default='coco', help='vocab build from coco or csv file')
+    parser.add_argument('--type', type=str, default='coco',
+                        help='vocab build from coco or csv file')
     args = parser.parse_args()
     main(args)
