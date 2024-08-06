@@ -14,7 +14,7 @@ result = client.predict(
 print(result)
 result = client.predict(
 		[["Hello!",'']],	# Tuple[str | Dict(file: filepath, alt_text: str | None) | None, str | Dict(file: filepath, alt_text: str | None) | None]  in 'Monkey-Chat' Chatbot component
-		file("../img_captioning/png/example.png"),	# filepath  in 'Upload' Uploadbutton component
+		file("../img_captioning/png/example.png"),
 		api_name="/add_file"
 )
 print(result)
