@@ -42,8 +42,9 @@ def ali_caption(file_path="../img_captioning/png/example.png", prompt="Give a br
     # 调用多模态对话接口
     response = simple_multimodal_conversation_call(local_file_path)
 
-    print(response["output"]["choices"][0]["message"]["content"])
+    return response["output"]["choices"][0]["message"]["content"]
 
 
 if __name__ == '__main__':
-    ali_caption()
+    caption = ali_caption()
+    print(caption)
