@@ -1,1 +1,3 @@
 gradio_client
+dashscope
+qianfan
