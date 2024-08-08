@@ -54,3 +54,33 @@ class DecoderRNN(nn.Module):
             inputs = inputs.unsqueeze(1)                         # inputs: (batch_size, 1, embed_size)
         sampled_ids = torch.stack(sampled_ids, 1)                # sampled_ids: (batch_size, max_seq_length)
         return sampled_ids
+
+class DecoderTransformer(nn.Module):
+    def __init__(self, embed_size, hidden_size, vocab_size, num_layers, max_seq_length=20):
+        """Set the hyper-parameters and build the layers."""
+        super(DecoderTransformer, self).__init__()
+        self.embed = nn.Embedding(vocab_size, embed_size)
+        self.transformer_layer = nn.TransformerDecoderLayer(d_model=embed_size, nhead=8)
+        self.transformer = nn.TransformerDecoder(self.transformer_layer, num_layers=num_layers)
+        self.linear = nn.Linear(embed_size, vocab_size)
+        self.max_seg_length = max_seq_length
+
+    def forward(self, features, captions, lengths):
+        """Decode image feature vectors and generates captions."""
+        embeddings = self.embed(captions)
+        hiddens = self.transformer(embeddings, features)
+        outputs = self.linear(hiddens)
+        return outputs
+
+    def sample(self, features, states=None):
+        """Generate captions for given image features using greedy search."""
+        # TODO: NEED CODE REVIEW
+        if states is None:
+            states = torch.zeros(features.size(0), 1, features.size(1)).to(features.device)
+        for i in range(self.max_seg_length):
+            hiddens = self.transformer(states, features)
+            outputs = self.linear(hiddens)
+            _, predicted = outputs.max(1)
+            states = states.repeat(1, 1, 1)
+            states[:, i:i + 1, :] = self.embed(predicted)
+        return states

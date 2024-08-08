@@ -4,7 +4,7 @@ import os
 
 # 设置API_KEY
 # 申请网址：https://help.aliyun.com/zh/dashscope/developer-reference/acquisition-and-configuration-of-api-key?spm=a2c4g.11186623.0.0.7b5728c46Soa44
-api_key = "sk-bfd42dfa3c0347d680fff1b2e2800586"
+api_key = "API_KEY"
 dashscope.api_key = api_key
 
 if api_key == "API_KEY":
