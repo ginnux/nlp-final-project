@@ -48,4 +48,3 @@ def ali_caption(file_path="../img_captioning/png/example.png", prompt="Give a br
 if __name__ == '__main__':
     caption = ali_caption()
     print(caption)
-
