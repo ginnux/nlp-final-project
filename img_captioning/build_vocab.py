@@ -57,7 +57,7 @@ def build_vocab_coco(json, threshold):
 def build_vocab_csv(csv, threshold):
     """Build a simple vocabulary wrapper."""
     counter = Counter()
-    with open(csv, 'r') as f:
+    with open(csv, 'r', encoding='UTF-8') as f:
         captions = f.readlines()
     for i, caption in enumerate(captions):
         caption = str(caption)
@@ -96,13 +96,13 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--caption_path', type=str, 
-                        default='data/annotations/captions_train2014.json', 
+                        default='./captions.csv',
                         help='path for train annotation file')
     parser.add_argument('--vocab_path', type=str, default='./data/vocab.pkl', 
                         help='path for saving vocabulary wrapper')
-    parser.add_argument('--threshold', type=int, default=4, 
+    parser.add_argument('--threshold', type=int, default=1,
                         help='minimum word count threshold')
-    parser.add_argument('--type', type=str, default='coco',
+    parser.add_argument('--type', type=str, default='csv',
                         help='vocab build from coco or csv file')
     args = parser.parse_args()
     main(args)

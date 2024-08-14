@@ -5,7 +5,7 @@ import pandas as pd
 import nltk
 from PIL import Image
 from pycocotools.coco import COCO
-
+from torchvision import transforms
 
 class CocoDataset(data.Dataset):
     """COCO Custom Dataset compatible with torch.utils.data.DataLoader."""
@@ -120,11 +120,11 @@ def collate_fn(data):
         targets[i, :end] = cap[:end]        
     return images, targets, lengths
 
-def get_loader(root, json, vocab, transform, batch_size, shuffle, num_workers, type='CoCo'):
+def get_loader(root, json, vocab, transform, batch_size, shuffle, num_workers, type='CSV'):
     """Returns torch.utils.data.DataLoader for custom dataset."""
     if type == 'COCO':
         # COCO caption dataset
-        coco = CocoDataset(root=root,
+        dataset = CocoDataset(root=root,
                            json=json,
                            vocab=vocab,
                            transform=transform)
@@ -134,22 +134,18 @@ def get_loader(root, json, vocab, transform, batch_size, shuffle, num_workers, t
         # images: a tensor of shape (batch_size, 3, 224, 224).
         # captions: a tensor of shape (batch_size, padded_length).
         # lengths: a list indicating valid length for each caption. length is (batch_size).
-        data_loader = torch.utils.data.DataLoader(dataset=coco,
-                                                  batch_size=batch_size,
-                                                  shuffle=shuffle,
-                                                  num_workers=num_workers,
-                                                  collate_fn=collate_fn)
     elif type == 'CSV':
         # CSV caption dataset
         dataset = CSVDataset(root=root,
                             csv=json,
                             vocab=vocab,
                             transform=transform)
-        dataloader = torch.utils.data.DataLoader(dataset=dataset,
-                                                batch_size=batch_size,
-                                                shuffle=shuffle,
-                                                num_workers=num_workers,
-                                                collate_fn=collate_fn)
+
     else:
         raise Exception('Data loader type not supported: {}'.format(type))
-    return data_loader
+    dataloader = torch.utils.data.DataLoader(dataset=dataset,
+                                             batch_size=batch_size,
+                                             shuffle=shuffle,
+                                             num_workers=num_workers,
+                                             collate_fn=collate_fn)
+    return dataloader
