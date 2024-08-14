@@ -6,7 +6,7 @@ import pickle
 import os
 from torchvision import transforms 
 from build_vocab import Vocabulary
-from model import EncoderCNN, DecoderRNN
+from model import EncoderCNN, DecoderRNN, DecoderTransformer
 from PIL import Image
 
 
@@ -35,7 +35,12 @@ def main(args):
 
     # Build models
     encoder = EncoderCNN(args.embed_size).eval()  # eval mode (batchnorm uses moving mean/variance)
-    decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers)
+    if args.decoder_type == 'RNN':
+        decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers)
+    elif args.decoder_type == 'Transformer':
+        decoder = DecoderTransformer(args.embed_size, args.hidden_size, len(vocab), args.num_layers)
+    else:
+        raise ValueError('Decoder type not supported')
     encoder = encoder.to(device)
     decoder = decoder.to(device)
 
@@ -69,10 +74,10 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--image', type=str, required=True, help='input image for generating caption')
-    parser.add_argument('--encoder_path', type=str, default='models/encoder-5-3000.pkl', help='path for trained encoder')
-    parser.add_argument('--decoder_path', type=str, default='models/decoder-5-3000.pkl', help='path for trained decoder')
+    parser.add_argument('--encoder_path', type=str, default='models/encoder-5-10.ckpt', help='path for trained encoder')
+    parser.add_argument('--decoder_path', type=str, default='models/decoder-5-10.ckpt', help='path for trained decoder')
     parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
-    
+    parser.add_argument('decoder_type', type=str, default='RNN', help='RNN or Transformer')
     # Model parameters (should be same as paramters in train.py)
     parser.add_argument('--embed_size', type=int , default=256, help='dimension of word embedding vectors')
     parser.add_argument('--hidden_size', type=int , default=512, help='dimension of lstm hidden states')

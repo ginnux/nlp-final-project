@@ -6,7 +6,7 @@ import os
 import pickle
 from data_loader import get_loader 
 from build_vocab import Vocabulary
-from model import EncoderCNN, DecoderRNN
+from model import EncoderCNN, DecoderRNN, DecoderTransformer
 from torch.nn.utils.rnn import pack_padded_sequence
 from torchvision import transforms
 
@@ -39,8 +39,12 @@ def main(args):
 
     # Build the models
     encoder = EncoderCNN(args.embed_size).to(device)
-    decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
-    
+    if args.decoder_type == 'RNN':
+        decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
+    elif args.decoder_type == 'Transformer':
+        decoder = DecoderTransformer(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
+    else:
+        raise ValueError('Decoder type not supported')
     # Loss and optimizer
     criterion = nn.CrossEntropyLoss()
     params = list(decoder.parameters()) + list(encoder.linear.parameters()) + list(encoder.bn.parameters())
@@ -86,8 +90,8 @@ if __name__ == '__main__':
     parser.add_argument('--image_dir', type=str, default='', help='directory for resized images')
     parser.add_argument('--caption_path', type=str, default='./captions.csv', help='path for train annotation json file')
     parser.add_argument('--log_step', type=int , default=10, help='step size for prining log info')
-    parser.add_argument('--save_step', type=int , default=1000, help='step size for saving trained models')
-    
+    parser.add_argument('--save_step', type=int , default=10, help='step size for saving trained models')
+    parser.add_argument('--decoder_type', type=str , default='Transformer', help='RNN or Transformer')
     # Model parameters
     parser.add_argument('--embed_size', type=int , default=256, help='dimension of word embedding vectors')
     parser.add_argument('--hidden_size', type=int , default=512, help='dimension of lstm hidden states')
