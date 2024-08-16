@@ -87,3 +87,32 @@ class DecoderTransformer(nn.Module):
             states = states.repeat(1, 1, 1)
             states[:, i:i + 1, :] = self.embed(predicted)
         return states
+
+class transformerDecoder(nn.Module):
+    def __init__(self, embed_size, hidden_size, vocab_size, num_layers, max_seq_length=20):
+        self.embed = nn.Embedding(vocab_size, embed_size)
+        self.transformerEncoderLayer = nn.TransformerEncoderLayer(d_model=embed_size, nhead=8)
+        self.transformerDecoderLayer = nn.TransformerDecoderLayer(d_model=embed_size, nhead=8)
+        self.transformerEncoder = nn.TransformerEncoder(self.transformerEncoderLayer, num_layers=num_layers)
+        self.transformerDecoder = nn.TransformerDecoder(self.transformerDecoderLayer, num_layers=num_layers)
+        self.linear = nn.Linear(embed_size, vocab_size)
+        self.max_seg_length = max_seq_length
+
+    def forward(self, features, captions, lengths):
+        embeddings = self.embed(captions)
+        encoderhidden = self.transformerEncoder(features)
+        hiddens = self.transformerDecoder(embeddings, encoderhidden)
+        outputs = self.linear(hiddens)
+        return outputs
+
+    def sample(self, features, states=None):
+        features = self.transformerEncoder(features)
+        if states is None:
+            states = torch.zeros(features.size(0), 1, features.size(1)).to(features.device)
+        for i in range(self.max_seg_length):
+            hiddens = self.transformerDecoder(states, features)
+            outputs = self.linear(hiddens)
+            _, predicted = outputs.max(1)
+            states = states.repeat(1, 1, 1)
+            states[:, i:i + 1, :] = self.embed(predicted)
+        return states
