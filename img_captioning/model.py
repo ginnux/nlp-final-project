@@ -59,15 +59,17 @@ class DecoderTransformer(nn.Module):
     def __init__(self, embed_size, hidden_size, vocab_size, num_layers, max_seq_length=20):
         """Set the hyper-parameters and build the layers."""
         super(DecoderTransformer, self).__init__()
-        self.embed = nn.Embedding(vocab_size, embed_size)
-        self.transformer_layer = nn.TransformerDecoderLayer(d_model=embed_size, nhead=8)
+        self.word_embed = nn.Embedding(vocab_size, embed_size)
+        self.feature_embed = nn.Linear(1, embed_size)
+        self.transformer_layer = nn.TransformerDecoderLayer(d_model=embed_size, nhead=8, batch_first=True)
         self.transformer = nn.TransformerDecoder(self.transformer_layer, num_layers=num_layers)
         self.linear = nn.Linear(embed_size, vocab_size)
         self.max_seg_length = max_seq_length
 
     def forward(self, features, captions, lengths):
         """Decode image feature vectors and generates captions."""
-        embeddings = self.embed(captions)
+        embeddings = self.word_embed(captions)
+        features = self.feature_embed(features.unsqueeze(-1))
         hiddens = self.transformer(embeddings, features)
         outputs = self.linear(hiddens)
         return outputs
@@ -75,6 +77,7 @@ class DecoderTransformer(nn.Module):
     def sample(self, features, states=None):
         """Generate captions for given image features using greedy search."""
         # TODO: NEED CODE REVIEW
+        features = self.feature_embed(features.unsqueeze(-1))
         if states is None:
             states = torch.zeros(features.size(0), 1, features.size(1)).to(features.device)
         for i in range(self.max_seg_length):
