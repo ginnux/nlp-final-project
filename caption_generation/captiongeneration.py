@@ -3,7 +3,7 @@ from ali import *
 from glob import glob
 from tqdm import tqdm
 
-images = sorted(glob('../img_captioning/images/train/*.jpg'))
+images = sorted(glob('../img_captioning_CNNRNN/images/train/*.jpg'))
 captions = []
 i=0
 

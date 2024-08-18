@@ -6,7 +6,7 @@ import pickle
 import os
 from torchvision import transforms 
 from build_vocab import Vocabulary
-from model import EncoderCNN, DecoderRNN, DecoderTransformer
+from model import EncoderCNN, DecoderRNN, DecoderTransformer2
 from PIL import Image
 
 
@@ -38,7 +38,7 @@ def main(args):
     if args.decoder_type == 'RNN':
         decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers)
     elif args.decoder_type == 'Transformer':
-        decoder = DecoderTransformer(args.embed_size, args.hidden_size, len(vocab), args.num_layers)
+        decoder = DecoderTransformer2(args.embed_size, args.hidden_size, len(vocab), args.num_layers)
     else:
         raise ValueError('Decoder type not supported')
     encoder = encoder.to(device)

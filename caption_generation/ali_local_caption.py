@@ -45,7 +45,7 @@ def ali_local_caption(file_path="../img_captioning/png/example.png", prompt="Giv
     return response
 
 # 标注代码
-images = sorted(glob('../img_captioning/images/train/*.jpg'))
+images = sorted(glob('../img_captioning_CNNRNN/images/train/*.jpg'))
 captions = []
 i=0
 

@@ -6,7 +6,7 @@ import os
 import pickle
 from data_loader import get_loader 
 from build_vocab import Vocabulary
-from model import EncoderCNN, DecoderRNN, DecoderTransformer
+from model import EncoderCNN, DecoderRNN, DecoderTransformer, DecoderTransformer2
 from torch.nn.utils.rnn import pack_padded_sequence
 from torchvision import transforms
 
@@ -42,7 +42,7 @@ def main(args):
     if args.decoder_type == 'RNN':
         decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
     elif args.decoder_type == 'Transformer':
-        decoder = DecoderTransformer(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
+        decoder = DecoderTransformer2(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
     else:
         raise ValueError('Decoder type not supported')
     # Loss and optimizer
