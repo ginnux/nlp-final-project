@@ -23,6 +23,92 @@ class EncoderCNN(nn.Module):
         return features
 
 
+class Attention(nn.Module):
+    def __init__(self, feature_dim, hidden_dim, attention_dim):
+        """
+        Initialize the attention mechanism.
+        :param feature_dim: Dimension of the image feature vector
+        :param hidden_dim: Dimension of the LSTM hidden state
+        :param attention_dim: Dimension of the attention layer
+        """
+        super(Attention, self).__init__()
+        self.feature_att = nn.Linear(feature_dim, attention_dim)
+        self.hidden_att = nn.Linear(hidden_dim, attention_dim)
+        self.full_att = nn.Linear(attention_dim, 1)
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, features, hidden):
+        """
+        Forward pass for attention mechanism.
+        :param features: Image features (batch_size, feature_dim)
+        :param hidden: Previous LSTM hidden state (batch_size, hidden_dim)
+        :return: Attention-weighted features, attention weights
+        """
+        att1 = self.feature_att(features)
+        att2 = self.hidden_att(hidden)
+        att = self.full_att(self.relu(att1 + att2)).squeeze(2)
+        alpha = self.softmax(att)
+        attention_weighted_features = (features * alpha.unsqueeze(2)).sum(dim=1)
+        return attention_weighted_features, alpha
+    
+
+class DecoderWithAttention(nn.Module):
+    def __init__(self, embed_size, hidden_size, vocab_size, num_layers, attention_dim, feature_dim, max_seq_length=20):
+        """
+        Initialize the decoder with attention mechanism.
+        :param embed_size: Dimension of the word embeddings
+        :param hidden_size: Dimension of the LSTM hidden state
+        :param vocab_size: Size of the vocabulary
+        :param num_layers: Number of layers in the LSTM
+        :param attention_dim: Dimension of the attention layer
+        :param feature_dim: Dimension of the image feature vector
+        :param max_seq_length: Maximum length of the generated sequence
+        """
+        super(DecoderWithAttention, self).__init__()
+        self.embed = nn.Embedding(vocab_size, embed_size)
+        self.attention = Attention(feature_dim, hidden_size, attention_dim)
+        self.lstm = nn.LSTM(embed_size + feature_dim, hidden_size, num_layers, batch_first=True)
+        self.linear = nn.Linear(hidden_size, vocab_size)
+        self.max_seg_length = max_seq_length
+
+    def forward(self, features, captions, lengths):
+        """Decode image feature vectors and generate captions."""
+        embeddings = self.embed(captions)
+        embeddings = torch.cat((features.unsqueeze(1), embeddings), 1)
+
+        h, c = self.init_hidden_state(features)
+
+        packed = pack_padded_sequence(embeddings, lengths, batch_first=True) 
+        hiddens, _ = self.lstm(packed)
+        outputs = self.linear(hiddens[0])
+        return outputs
+
+    def sample(self, features, states=None):
+        """Generate captions for given image features using greedy search."""
+        sampled_ids = []
+        inputs = features.unsqueeze(1)
+
+        for i in range(self.max_seg_length):
+            attention_weighted_features, _ = self.attention(features, states[0][-1] if states is not None else features)
+            inputs = torch.cat([inputs, attention_weighted_features.unsqueeze(1)], dim=2)
+            hiddens, states = self.lstm(inputs, states)          # hiddens: (batch_size, 1, hidden_size)
+            outputs = self.linear(hiddens.squeeze(1))            # outputs:  (batch_size, vocab_size)
+            _, predicted = outputs.max(1)                        # predicted: (batch_size)
+            sampled_ids.append(predicted)
+            inputs = self.embed(predicted)                       # inputs: (batch_size, embed_size)
+            inputs = inputs.unsqueeze(1)                         # inputs: (batch_size, 1, embed_size)
+
+        sampled_ids = torch.stack(sampled_ids, 1)                # sampled_ids: (batch_size, max_seq_length)
+        return sampled_ids
+
+    def init_hidden_state(self, features):
+        """Initialize the hidden state and cell state of the LSTM."""
+        hidden_state = torch.zeros(self.lstm.num_layers, features.size(0), self.lstm.hidden_size).to(features.device)
+        cell_state = torch.zeros(self.lstm.num_layers, features.size(0), self.lstm.hidden_size).to(features.device)
+        return hidden_state, cell_state
+
+
 class DecoderRNN(nn.Module):
     def __init__(self, embed_size, hidden_size, vocab_size, num_layers, max_seq_length=20):
         """Set the hyper-parameters and build the layers."""
