@@ -18,3 +18,7 @@
 在完成了模型训练或将encoder.pth和decoder.pth置于output目录下后，打开train.ipynb，顺次执行代码即可完成测试，对验证集中图片生成的caption输出在"output/result.json"中
 
 ### 2.4. 指标生成
+还在做
+
+## 3. 模型文件
+https://pan.baidu.com/s/1hFKHTIUA2IhN1tiJt1vYfg?pwd=521n
