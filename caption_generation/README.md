@@ -29,3 +29,8 @@
 1. 在[申请网址](https://console.bce.baidu.com/iam/#/iam/accesslist)中申请AK和SK。
 2. 在`baidu.py`中填入AK和SK。
 3. 运行`baidu.py`，输入图片路径，即可得到图片的标签。
+
+# Caption文件
+LLM模型产生的标注数据位于本文件夹中。
+`captionsblip2.csv`为blip2模型产生的标注。
+`captionsqwen.csv`为通义千问模型产生的标注。
