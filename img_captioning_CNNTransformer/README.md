@@ -11,7 +11,7 @@ ing_with_transformers](https://github.com/zarzouram/image_captioning_with_transf
 
 ### 2.1. **数据集**
 
-训练集包含2000张图片，验证集包含347张图片，caption数据由大模型生成保存于csv格式文件，共两列，具体格式如下
+训练集包含2000张图片，验证集包含369张图片，caption数据由大模型生成保存于csv格式文件，共两列，具体格式如下
 
 | image         | caption  |
 |---------------|---------|
